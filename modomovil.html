@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Imperium Romanum: Desafío Numérico</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        roman: {
+                            gold: '#F5C242',
+                            goldDark: '#C79316',
+                            red: '#8B0000',
+                            redDark: '#5A0000',
+                            crimson: '#A91B1B',
+                            cream: '#FDFBF7',
+                            parchment: '#F4EAD3',
+                            bronze: '#8C6239'
+                        }
+                    },
+                    fontFamily: {
+                        title: ['Cinzel', 'serif'],
+                        body: ['Fredoka', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Deshabilitar selección de texto para experiencia táctil de juego */
+        body {
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            font-family: 'Fredoka', sans-serif;
+            background-color: #120907;
+            background-image: radial-gradient(#2c1810 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        /* Tipografía de títulos */
+        .font-title {
+            font-family: 'Cinzel', serif;
+        }
+
+        /* Animación de agitación para respuestas erróneas */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+        .animate-shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        /* Animación de pulso dorado para aciertos */
+        @keyframes goldGlow {
+            0% { box-shadow: 0 0 5px #F5C242; }
+            50% { box-shadow: 0 0 25px #F5C242, 0 0 10px #ffffff; }
+            100% { box-shadow: 0 0 5px #F5C242; }
+        }
+        .animate-glow {
+            animation: goldGlow 1s infinite alternate;
+        }
+
+        /* Scrollbar personalizado para la guía */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f4ead3;
+            border-radius: 10px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #8C6239;
+            border-radius: 10px;
+        }
+
+        /* Botón táctil 3D */
+        .btn-roman {
+            transition: all 0.1s ease;
+            box-shadow: 0 5px 0 0 #8C6239;
+        }
+        .btn-roman:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 0 #8C6239;
+        }
+
+        .btn-gold {
+            background: linear-gradient(180deg, #FFE27A 0%, #F5C242 50%, #C79316 100%);
+            box-shadow: 0 5px 0 0 #8A6106;
+        }
+        .btn-gold:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 0 #8A6106;
+        }
+
+        .btn-red {
+            background: linear-gradient(180deg, #D63333 0%, #A91B1B 50%, #700C0C 100%);
+            box-shadow: 0 5px 0 0 #420505;
+        }
+        .btn-red:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 0 #420505;
+        }
+
+        /* Aspect Ratio Formato 18:9 (9:18 Portrait) */
+        .aspect-18-9 {
+            aspect-ratio: 9 / 18;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-2 sm:p-4 text-slate-800">
+
+    <!-- REPRODUCTOR DE MÚSICA DE FONDO -->
+    <audio id="bg-music" src="musica.mp3" loop></audio>
+
+    <!-- CANVAS PARA EFECTO DE CONFETI -->
+    <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50 w-full h-full"></canvas>
+
+    <!-- MARCO CONTENEDOR TIPO SMARTPHONE / TABLET 18:9 -->
+    <div id="game-container" class="w-full max-w-[420px] h-[94vh] max-h-[880px] min-h-[640px] aspect-18-9 flex flex-col justify-between rounded-[2.5rem] border-[6px] border-amber-600/70 bg-gradient-to-b from-stone-900 via-stone-800 to-red-950 shadow-[0_0_50px_rgba(245,194,66,0.25)] relative overflow-hidden select-none">
+        
+        <!-- CABECERA SUPERIOR PERMANENTE -->
+        <header class="bg-gradient-to-r from-roman-redDark via-roman-red to-roman-redDark px-3 py-2.5 flex items-center justify-between border-b-2 border-roman-gold/50 z-20 shadow-lg">
+            <div class="flex items-center space-x-1.5">
+                <!-- Icono Laurel -->
+                <svg class="w-5 h-5 text-roman-gold shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2L10.5 5.5L7 6L9.5 8.5L9 12L12 10.25L15 12L14.5 8.5L17 6L13.5 5.5L12 2Z"/>
+                    <path d="M6 14C4 16 3 19 3 22C6 22 9 20 10 18C8 18 6.5 16.5 6 14Z"/>
+                    <path d="M18 14C19.5 16.5 18 18 14 18C15 20 18 22 21 22C21 19 20 16 18 14Z"/>
+                </svg>
+                <h1 class="font-title font-bold text-roman-gold text-xs sm:text-sm tracking-wider uppercase drop-shadow">Imperium</h1>
+            </div>
+
+            <!-- BOTONES DE NAVEGACIÓN RÁPIDA DE LA CABECERA -->
+            <div class="flex items-center space-x-1.5">
+                <!-- Botón Inicio (index.html) -->
+                <a href="index.html" class="bg-stone-800 text-amber-300 border border-amber-500/40 rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-xs sm:text-sm transition active:scale-95" title="Inicio">
+                    🏠
+                </a>
+
+                <!-- Botón Guía Educativa / Reglas -->
+                <button id="btn-toggle-rules" onclick="toggleRulesModal()" class="bg-amber-500/20 hover:bg-amber-500/30 text-roman-gold border border-roman-gold/60 rounded-full px-2 py-1 text-xs font-semibold flex items-center space-x-1 transition active:scale-95">
+                    <span>📜 Reglas</span>
+                </button>
+                
+                <!-- Control de Volumen y Mute -->
+                <div class="flex items-center space-x-1 bg-stone-800/90 border border-amber-500/40 rounded-full px-2 py-1">
+                    <button id="btn-toggle-audio" onclick="toggleAudio()" class="text-amber-300 text-xs transition active:scale-95">
+                        🔊
+                    </button>
+                    <input type="range" id="volume-control" min="0" max="1" step="0.05" value="0.5" oninput="setGlobalVolume(this.value)" class="w-10 sm:w-12 h-1 accent-amber-400 bg-stone-700 rounded-lg appearance-none cursor-pointer" title="Volumen">
+                </div>
+            </div>
+        </header>
+
+        <!-- SUB-PANEL DESPLEGABLE: GUÍA EDUCATIVA Y TABLA DE VALORES -->
+        <div id="rules-drawer" class="hidden absolute top-[49px] left-0 right-0 bg-roman-parchment text-amber-950 z-30 p-4 border-b-4 border-roman-gold shadow-2xl transition-all duration-300 max-h-[82%] overflow-y-auto custom-scroll">
+            <div class="flex justify-between items-center mb-3 border-b border-amber-800/30 pb-2">
+                <h2 class="font-title font-bold text-lg text-roman-red flex items-center gap-1">
+                    <span>🏛️</span> Guía de Números Romanos
+                </h2>
+                <button onclick="toggleRulesModal()" class="text-amber-900 font-bold bg-amber-200 hover:bg-amber-300 rounded-full w-6 h-6 flex items-center justify-center text-xs">✕</button>
+            </div>
+
+            <!-- Tabla de Valores -->
+            <div class="mb-4">
+                <h3 class="font-bold text-xs uppercase text-amber-900 tracking-wider mb-1.5">1. Tabla de Valores Básicos</h3>
+                <div class="grid grid-cols-7 gap-1 text-center font-bold text-xs">
+                    <div class="bg-amber-100 p-1.5 rounded border border-amber-300"><span class="text-roman-red block text-sm font-title">I</span>1</div>
+                    <div class="bg-amber-100 p-1.5 rounded border border-amber-300"><span class="text-roman-red block text-sm font-title">V</span>5</div>
+                    <div class="bg-amber-100 p-1.5 rounded border border-amber-300"><span class="text-roman-red block text-sm font-title">X</span>10</div>
+                    <div class="bg-amber-100 p-1.5 rounded border border-amber-300"><span class="text-roman-red block text-sm font-title">L</span>50</div>
+                    <div class="bg-amber-100 p-1.5 rounded border border-amber-300"><span class="text-roman-red block text-sm font-title">C</span>100</div>
+                    <div class="bg-amber-100 p-1.5 rounded border border-amber-300"><span class="text-roman-red block text-sm font-title">D</span>500</div>
+                    <div class="bg-amber-100 p-1.5 rounded border border-amber-300"><span class="text-roman-red block text-sm font-title">M</span>1000</div>
+                </div>
+            </div>
+
+            <!-- Las 4 Reglas fundamentales -->
+            <div class="space-y-2.5 text-xs">
+                <h3 class="font-bold text-xs uppercase text-amber-900 tracking-wider">2. Las 4 Reglas Fundamentales</h3>
+                
+                <div class="bg-white/80 p-2.5 rounded-lg border-l-4 border-emerald-600 shadow-sm">
+                    <p class="font-bold text-emerald-900">➕ Regla de Suma:</p>
+                    <p class="text-slate-700">Una letra a la derecha de otra igual o mayor, **suma** su valor.<br><span class="text-roman-red font-semibold">Ej: VI = 5 + 1 = 6 | XV = 10 + 5 = 15</span></p>
+                </div>
+
+                <div class="bg-white/80 p-2.5 rounded-lg border-l-4 border-blue-600 shadow-sm">
+                    <p class="font-bold text-blue-900">➖ Regla de Resta:</p>
+                    <p class="text-slate-700">Las letras <b class="font-title">I, X, C</b> a la izquierda de una mayor, **restan**:<br>
+                    • <b>I</b> resta a V y X (IV=4, IX=9)<br>
+                    • <b>X</b> resta a L y C (XL=40, XC=90)<br>
+                    • <b>C</b> resta a D y M (CD=400, CM=900)</p>
+                </div>
+
+                <div class="bg-white/80 p-2.5 rounded-lg border-l-4 border-amber-500 shadow-sm">
+                    <p class="font-bold text-amber-900">🔁 Regla de Repetición (Máx 3):</p>
+                    <p class="text-slate-700">Solo <b class="font-title">I, X, C, M</b> se pueden repetir hasta **3 veces seguidas**.<br><span class="text-roman-red font-semibold">Ej: III = 3, CCC = 300</span></p>
+                </div>
+
+                <div class="bg-white/80 p-2.5 rounded-lg border-l-4 border-rose-600 shadow-sm">
+                    <p class="font-bold text-rose-900">🚫 Regla de No Repetición:</p>
+                    <p class="text-slate-700">Las letras <b class="font-title">V, L, D</b> **NUNCA** se repiten ni se ponen a la izquierda para restar.</p>
+                </div>
+            </div>
+
+            <button onclick="toggleRulesModal()" class="w-full mt-4 py-2 bg-roman-red text-white font-bold rounded-xl shadow hover:bg-roman-redDark transition text-xs">
+                ¡Entendido, a jugar! 🚀
+            </button>
+        </div>
+
+        <!-- ÁREA CENTRAL DE PANTALLAS (CAMBIO DINÁMICO) -->
+        <main class="flex-1 relative flex flex-col justify-between p-4 overflow-hidden">
+
+            <!-- 1. PANTALLA DE INICIO / MENÚ PRINCIPAL -->
+            <section id="screen-menu" class="h-full flex flex-col justify-between py-2 transition-all duration-300">
+                <!-- Título e Ilustración -->
+                <div class="text-center mt-2 space-y-1">
+                    <div class="inline-block p-3 bg-roman-gold/10 rounded-full border border-roman-gold/30 mb-1">
+                        <span class="text-4xl">🏛️</span>
+                    </div>
+                    <h2 class="font-title text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-roman-gold to-amber-400 drop-shadow-md">
+                        DESAFÍO ROMANO
+                    </h2>
+                    <p class="text-amber-200/80 text-xs font-medium">Aprende jugando • 5º Educación Primaria</p>
+                </div>
+
+                <!-- Selección de Modo de Juego -->
+                <div class="space-y-3 my-auto">
+                    <div>
+                        <label class="block text-amber-300/90 text-xs font-bold uppercase tracking-wider mb-1.5 text-center">
+                            1. Selecciona Modo de Juego
+                        </label>
+                        <div class="grid grid-cols-1 gap-2">
+                            <button onclick="setMode('roman_to_arabic')" id="mode-btn-roman_to_arabic" class="mode-btn bg-stone-800/90 text-amber-100 border-2 border-amber-600/40 rounded-xl p-2.5 text-xs font-semibold flex items-center justify-between hover:bg-stone-700 active:scale-98 transition">
+                                <span class="flex items-center gap-2"><span>🏛️ ➔ 🔢</span> Romanos a Arábigos</span>
+                                <span class="text-amber-400 text-[10px]">(XIV ➔ 14)</span>
+                            </button>
+                            <button onclick="setMode('arabic_to_roman')" id="mode-btn-arabic_to_roman" class="mode-btn bg-stone-800/90 text-amber-100 border-2 border-amber-600/40 rounded-xl p-2.5 text-xs font-semibold flex items-center justify-between hover:bg-stone-700 active:scale-98 transition">
+                                <span class="flex items-center gap-2"><span>🔢 ➔ 🏛️</span> Arábigos a Romanos</span>
+                                <span class="text-amber-400 text-[10px]">(49 ➔ XLIX)</span>
+                            </button>
+                            <button onclick="setMode('mixed')" id="mode-btn-mixed" class="mode-btn bg-stone-800/90 text-amber-100 border-2 border-amber-600/40 rounded-xl p-2.5 text-xs font-semibold flex items-center justify-between hover:bg-stone-700 active:scale-98 transition">
+                                <span class="flex items-center gap-2"><span>⚔️</span> Modo Mixto (Alternado)</span>
+                                <span class="text-amber-400 text-[10px]">¡Desafío completo!</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Selección de Dificultad -->
+                    <div>
+                        <label class="block text-amber-300/90 text-xs font-bold uppercase tracking-wider mb-1.5 text-center">
+                            2. Selecciona Nivel de Dificultad
+                        </label>
+                        <div class="grid grid-cols-3 gap-1.5">
+                            <button onclick="setDifficulty('beginner')" id="diff-btn-beginner" class="diff-btn bg-stone-800/90 text-amber-100 border border-emerald-500/50 rounded-xl p-2 text-center text-xs font-semibold hover:bg-stone-700 transition">
+                                <span class="block text-emerald-400 font-bold">Principiante</span>
+                                <span class="text-[10px] text-slate-400">1 al 50</span>
+                            </button>
+                            <button onclick="setDifficulty('centurion')" id="diff-btn-centurion" class="diff-btn bg-stone-800/90 text-amber-100 border border-amber-500/50 rounded-xl p-2 text-center text-xs font-semibold hover:bg-stone-700 transition">
+                                <span class="block text-amber-400 font-bold">Centurión</span>
+                                <span class="text-[10px] text-slate-400">1 al 500</span>
+                            </button>
+                            <button onclick="setDifficulty('caesar')" id="diff-btn-caesar" class="diff-btn bg-stone-800/90 text-amber-100 border border-rose-500/50 rounded-xl p-2 text-center text-xs font-semibold hover:bg-stone-700 transition">
+                                <span class="block text-rose-400 font-bold">Gran César</span>
+                                <span class="text-[10px] text-slate-400">1 al 3999</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Récord Local y Botón de Inicio -->
+                <div class="space-y-2 mt-auto">
+                    <div class="bg-amber-950/60 border border-amber-500/30 rounded-xl p-2 text-center text-xs text-amber-200 flex justify-around">
+                        <div>🏆 Récord: <span id="menu-high-score" class="font-bold text-amber-400">0</span> pts</div>
+                        <div>🔥 Máx Racha: <span id="menu-max-streak" class="font-bold text-orange-400">0</span></div>
+                    </div>
+
+                    <button onclick="startGame()" class="w-full btn-gold text-amber-950 font-title font-black text-lg py-3 rounded-2xl tracking-wide uppercase flex items-center justify-center space-x-2">
+                        <span>⚔️ ¡Comenzar Batalla!</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- 2. PANTALLA DE JUEGO PRINCIPAL -->
+            <section id="screen-game" class="hidden h-full flex flex-col justify-between py-1 transition-all duration-300">
+                
+                <!-- Marcador de estado de partida -->
+                <div class="bg-stone-900/90 border border-amber-500/30 rounded-xl p-2 flex items-center justify-between text-xs mb-1 shadow-md">
+                    <div class="flex items-center space-x-1">
+                        <span class="text-amber-400 font-bold">⭐ Puntos:</span>
+                        <span id="game-score" class="font-black text-amber-200 text-sm">0</span>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        <span class="text-orange-400 font-bold">🔥 Racha:</span>
+                        <span id="game-streak" class="font-black text-orange-300 text-sm">0</span>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        <span id="game-lives" class="text-base tracking-widest">❤️❤️❤️</span>
+                    </div>
+                </div>
+
+                <!-- Indicador de Pregunta -->
+                <div class="text-center text-[11px] text-amber-300/80 font-medium">
+                    Pregunta <span id="current-question-num" class="font-bold text-amber-200">1</span> / <span id="total-questions-num" class="font-bold text-amber-200">10</span>
+                </div>
+
+                <!-- TARJETA CENTRAL DE PREGUNTA -->
+                <div id="question-card" class="bg-gradient-to-b from-roman-cream to-roman-parchment rounded-2xl p-4 border-2 border-roman-gold shadow-xl text-center my-auto relative">
+                    <span id="question-prompt" class="block text-xs text-amber-900 font-bold uppercase tracking-wider mb-1">
+                        Escribe el número equivalente:
+                    </span>
+                    
+                    <!-- Valor a Convertir -->
+                    <div id="question-display" class="font-title font-black text-3xl sm:text-4xl text-roman-red drop-shadow my-2 tracking-widest">
+                        ---
+                    </div>
+
+                    <!-- Pista Educativa / Descomposición -->
+                    <button onclick="showHint()" class="inline-flex items-center gap-1 text-[11px] text-amber-800 bg-amber-200/80 hover:bg-amber-300/80 px-2.5 py-1 rounded-full border border-amber-400/60 font-semibold transition mt-1">
+                        <span>💡</span> ¿Necesitas pista?
+                    </button>
+                    <div id="hint-display" class="hidden text-xs font-semibold text-emerald-800 mt-2 bg-emerald-100/90 p-1.5 rounded-lg border border-emerald-300"></div>
+                </div>
+
+                <!-- CASILLA DE RESPUESTA DEL JUGADOR -->
+                <div class="my-2">
+                    <div id="answer-box-container" class="bg-stone-900/90 border-2 border-amber-400/80 rounded-xl p-2.5 text-center min-h-[48px] flex items-center justify-center shadow-inner relative">
+                        <span id="answer-display" class="font-title font-bold text-2xl text-amber-300 tracking-widest min-h-[32px]"></span>
+                        <span id="cursor" class="w-2 h-6 bg-amber-400 animate-pulse ml-0.5 inline-block"></span>
+                    </div>
+                </div>
+
+                <!-- TECLADOS VIRTUALES TÁCTILES ADAPTATIVOS -->
+                <div class="mt-auto space-y-1.5">
+                    
+                    <!-- A) Teclado Romano (I, V, X, L, C, D, M) -->
+                    <div id="keyboard-roman" class="grid grid-cols-4 gap-1.5">
+                        <button onclick="typeInput('I')" class="btn-roman bg-amber-100 text-amber-950 font-title font-bold text-xl py-2.5 rounded-xl border border-amber-300">I</button>
+                        <button onclick="typeInput('V')" class="btn-roman bg-amber-100 text-amber-950 font-title font-bold text-xl py-2.5 rounded-xl border border-amber-300">V</button>
+                        <button onclick="typeInput('X')" class="btn-roman bg-amber-100 text-amber-950 font-title font-bold text-xl py-2.5 rounded-xl border border-amber-300">X</button>
+                        <button onclick="typeInput('L')" class="btn-roman bg-amber-100 text-amber-950 font-title font-bold text-xl py-2.5 rounded-xl border border-amber-300">L</button>
+                        <button onclick="typeInput('C')" class="btn-roman bg-amber-100 text-amber-950 font-title font-bold text-xl py-2.5 rounded-xl border border-amber-300">C</button>
+                        <button onclick="typeInput('D')" class="btn-roman bg-amber-100 text-amber-950 font-title font-bold text-xl py-2.5 rounded-xl border border-amber-300">D</button>
+                        <button onclick="typeInput('M')" class="btn-roman bg-amber-100 text-amber-950 font-title font-bold text-xl py-2.5 rounded-xl border border-amber-300">M</button>
+                        <button onclick="backspaceInput()" class="btn-roman bg-rose-200 text-rose-950 font-bold text-lg py-2.5 rounded-xl border border-rose-300 flex items-center justify-center">⌫</button>
+                    </div>
+
+                    <!-- B) Teclado Numérico Arábigo (0-9) -->
+                    <div id="keyboard-numeric" class="hidden grid grid-cols-3 gap-1.5">
+                        <button onclick="typeInput('1')" class="btn-roman bg-amber-100 text-amber-950 font-bold text-xl py-2 rounded-xl border border-amber-300">1</button>
+                        <button onclick="typeInput('2')" class="btn-roman bg-amber-100 text-amber-950 font-bold text-xl py-2 rounded-xl border border-amber-300">2</button>
+                        <button onclick="typeInput('3')" class="btn-roman bg-amber-100 text-amber-950 font-bold text-xl py-2 rounded-xl border border-amber-300">3</button>
+                        <button onclick="typeInput('4')" class="btn-roman bg-amber-100 text-amber-950 font-bold text-xl py-2 rounded-xl border border-amber-300">4</button>
+                        <button onclick="typeInput('5')" class="btn-roman bg-amber-100 text-amber-950 font-bold text-xl py-2 rounded-xl border border-amber-300">5</button>
+                        <button onclick="typeInput('6')" class="btn-roman bg-amber-100 text-amber-950 font-bold text-xl py-2 rounded-xl border border-amber-300">6</button>
+                        <button onclick="typeInput('7')" class="btn-roman bg-amber-100 text-amber-950 font-bold text-xl py-2 rounded-xl border border-amber-300">7</button>
+                        <button onclick="typeInput('8')" class="btn-roman bg-amber-100 text-amber-950 font-bold text-xl py-2 rounded-xl border border-amber-300">8</button>
+                        <button onclick="typeInput('9')" class="btn-roman bg-amber-100 text-amber-950 font-bold text-xl py-2 rounded-xl border border-amber-300">9</button>
+                        <button onclick="clearInput()" class="btn-roman bg-stone-300 text-stone-800 font-bold text-xs py-2 rounded-xl border border-stone-400">C</button>
+                        <button onclick="typeInput('0')" class="btn-roman bg-amber-100 text-amber-950 font-bold text-xl py-2 rounded-xl border border-amber-300">0</button>
+                        <button onclick="backspaceInput()" class="btn-roman bg-rose-200 text-rose-950 font-bold text-lg py-2 rounded-xl border border-rose-300 flex items-center justify-center">⌫</button>
+                    </div>
+
+                    <!-- Botón Enviar Respuesta -->
+                    <button onclick="submitAnswer()" class="w-full btn-gold text-amber-950 font-title font-bold text-base py-2.5 rounded-xl flex items-center justify-center space-x-1 uppercase tracking-wider">
+                        <span>🚀 Comprobar Respuesta</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- 3. PANTALLA DE RESULTADOS FINAL -->
+            <section id="screen-results" class="hidden h-full flex flex-col justify-between py-2 text-center transition-all duration-300">
+                <div class="space-y-2 mt-2">
+                    <h2 class="font-title text-2xl font-black text-amber-300">¡FIN DE LA BATALLA!</h2>
+                    
+                    <!-- Estrellas de rendimiento -->
+                    <div id="result-stars" class="text-4xl tracking-widest my-1">
+                        ⭐⭐⭐
+                    </div>
+
+                    <!-- Título del rango obtenido -->
+                    <div id="result-rank" class="font-title font-bold text-xl text-roman-gold drop-shadow">
+                        ¡Gran César de Roma!
+                    </div>
+                </div>
+
+                <!-- Tarjeta resumen de puntuación y estadísticas -->
+                <div class="bg-stone-900/90 border-2 border-amber-500/50 rounded-2xl p-4 space-y-3 my-auto shadow-xl">
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div class="bg-amber-950/60 p-2 rounded-xl border border-amber-500/20">
+                            <span class="block text-slate-400">Puntuación Final</span>
+                            <span id="res-score" class="font-title font-bold text-xl text-amber-300">0</span>
+                        </div>
+                        <div class="bg-amber-950/60 p-2 rounded-xl border border-amber-500/20">
+                            <span class="block text-slate-400">Racha Máxima</span>
+                            <span id="res-streak" class="font-bold text-xl text-orange-400">0</span>
+                        </div>
+                        <div class="bg-amber-950/60 p-2 rounded-xl border border-amber-500/20">
+                            <span class="block text-slate-400">Aciertos</span>
+                            <span id="res-correct" class="font-bold text-lg text-emerald-400">0 / 10</span>
+                        </div>
+                        <div class="bg-amber-950/60 p-2 rounded-xl border border-amber-500/20">
+                            <span class="block text-slate-400">Efectividad</span>
+                            <span id="res-accuracy" class="font-bold text-lg text-cyan-400">100%</span>
+                        </div>
+                    </div>
+
+                    <!-- Medalla / Trofeo Obtenido -->
+                    <div id="res-trophy-card" class="bg-gradient-to-r from-amber-900/40 via-amber-800/40 to-amber-900/40 p-2.5 rounded-xl border border-amber-400/40 flex items-center justify-center space-x-3">
+                        <span id="res-trophy-icon" class="text-3xl">🥇</span>
+                        <div class="text-left text-xs">
+                            <span class="block font-bold text-amber-300" id="res-trophy-title">Insignia de Oro Imperial</span>
+                            <span class="text-amber-200/70 text-[10px]" id="res-trophy-desc">¡Has demostrado maestría absoluta en números romanos!</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="space-y-2 mt-auto">
+                    <button onclick="startGame()" class="w-full btn-gold text-amber-950 font-title font-bold text-base py-3 rounded-2xl uppercase tracking-wider">
+                        🔄 Jugar de Nuevo
+                    </button>
+                    <button onclick="showScreen('menu')" class="w-full bg-stone-800 text-amber-200 hover:bg-stone-700 font-semibold text-xs py-2.5 rounded-xl border border-amber-600/30">
+                        🏠 Volver al Menú Principal
+                    </button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL DE FEEDBACK DIDÁCTICO (ERROR / EXPLICACIÓN) -->
+    <div id="feedback-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-roman-parchment text-amber-950 rounded-2xl max-w-xs w-full p-4 border-4 border-roman-gold shadow-2xl space-y-3 animate-shake">
+            <div class="text-center">
+                <span id="modal-icon" class="text-3xl block">❌</span>
+                <h3 id="modal-title" class="font-title font-bold text-lg text-roman-red mt-1">¡Casi lo tienes!</h3>
+            </div>
+
+            <div id="modal-body" class="text-xs space-y-2 text-slate-800">
+                <div class="bg-white/80 p-2 rounded-lg border border-amber-300">
+                    <div><b>Tu respuesta:</b> <span id="user-wrong-ans" class="text-rose-700 font-bold"></span></div>
+                    <div><b>Respuesta correcta:</b> <span id="correct-ans" class="text-emerald-700 font-bold font-title"></span></div>
+                </div>
+                
+                <div id="modal-explanation" class="bg-amber-100/90 p-2 rounded-lg border border-amber-300 text-[11px] leading-relaxed">
+                    <!-- Explicación pedagógica inyectada dinámicamente -->
+                </div>
+            </div>
+
+            <button onclick="closeFeedbackModal()" class="w-full py-2 bg-roman-red hover:bg-roman-redDark text-white font-bold text-xs rounded-xl shadow">
+                ¡Entendido, continuemos! 👍
+            </button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT VANILLA COMPLETO CON AUDIOS Y LÓGICA -->
+    <script>
+        /* ==========================================================================
+           1. SISTEMA DE AUDIO DIGITAL (SINTETIZADOR CON WEB AUDIO API)
+           ========================================================================== */
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+                this.volume = 0.5;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContext) {
+                        this.ctx = new AudioContext();
+                    }
+                }
+            }
+
+            playClick() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(250, this.ctx.currentTime + 0.04);
+                
+                gain.gain.setValueAtTime(0.12 * this.volume, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.04);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.04);
+            }
+
+            playCorrect() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const freqs = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6 (Arpegio Triunfal)
+
+                freqs.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.07);
+
+                    gain.gain.setValueAtTime(0.18 * this.volume, now + idx * 0.07);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.07 + 0.22);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + idx * 0.07);
+                    osc.stop(now + idx * 0.07 + 0.22);
+                });
+            }
+
+            playWrong() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.exponentialRampToValueAtTime(110, now + 0.25);
+
+                gain.gain.setValueAtTime(0.15 * this.volume, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.25);
+            }
+
+            playFanfare() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.1);
+
+                    gain.gain.setValueAtTime(0.1 * this.volume, now + idx * 0.1);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.1 + 0.35);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + idx * 0.1);
+                    osc.stop(now + idx * 0.1 + 0.35);
+                });
+            }
+        }
+
+        const audioEngine = new SoundEngine();
+
+        function toggleAudio() {
+            audioEngine.muted = !audioEngine.muted;
+            const btn = document.getElementById('btn-toggle-audio');
+            btn.innerText = audioEngine.muted ? '🔇' : '🔊';
+
+            const bgMusic = document.getElementById('bg-music');
+            if (bgMusic) {
+                bgMusic.muted = audioEngine.muted;
+            }
+        }
+
+        function setGlobalVolume(val) {
+            const vol = parseFloat(val);
+            audioEngine.volume = vol;
+            const bgMusic = document.getElementById('bg-music');
+            if (bgMusic) {
+                bgMusic.volume = vol;
+            }
+        }
+
+        // Detección de primera interacción para reproducir música de fondo
+        function setupFirstInteractionAudio() {
+            const startAudio = () => {
+                const bgMusic = document.getElementById('bg-music');
+                if (bgMusic && bgMusic.paused) {
+                    bgMusic.play().catch(() => {});
+                }
+                ['click', 'touchstart', 'pointerdown', 'keydown'].forEach(event => {
+                    window.removeEventListener(event, startAudio);
+                });
+            };
+
+            ['click', 'touchstart', 'pointerdown', 'keydown'].forEach(event => {
+                window.addEventListener(event, startAudio);
+            });
+        }
+
+        /* ==========================================================================
+           2. MOTOR MATEMÁTICO DE NÚMEROS ROMANOS Y EXPLICACIONES PEDAGÓGICAS
+           ========================================================================== */
+        const ROMAN_MAP = [
+            { val: 1000, rom: 'M' }, { val: 900, rom: 'CM' },
+            { val: 500,  rom: 'D' }, { val: 400, rom: 'CD' },
+            { val: 100,  rom: 'C' }, { val: 90,  rom: 'XC' },
+            { val: 50,   rom: 'L' }, { val: 40,  rom: 'XL' },
+            { val: 10,   rom: 'X' }, { val: 9,   rom: 'IX' },
+            { val: 5,    rom: 'V' }, { val: 4,   rom: 'IV' },
+            { val: 1,    rom: 'I' }
+        ];
+
+        function toRoman(num) {
+            if (num <= 0 || num > 3999) return '';
+            let temp = num;
+            let result = '';
+            for (let item of ROMAN_MAP) {
+                while (temp >= item.val) {
+                    result += item.rom;
+                    temp -= item.val;
+                }
+            }
+            return result;
+        }
+
+        function toArabic(romanStr) {
+            romanStr = romanStr.toUpperCase().trim();
+            const values = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 };
+            let total = 0;
+
+            for (let i = 0; i < romanStr.length; i++) {
+                let current = values[romanStr[i]];
+                let next = values[romanStr[i + 1]];
+
+                if (!current) return NaN;
+
+                if (next && current < next) {
+                    total -= current;
+                } else {
+                    total += current;
+                }
+            }
+            return total;
+        }
+
+        // Genera la descomposición detallada por valor posicional
+        function getDecompositionText(num) {
+            const str = num.toString();
+            const len = str.length;
+            let parts = [];
+
+            for (let i = 0; i < len; i++) {
+                let digit = parseInt(str[i]);
+                if (digit === 0) continue;
+                let placeValue = digit * Math.pow(10, len - 1 - i);
+                let rVal = toRoman(placeValue);
+                parts.push(`${placeValue} (${rVal})`);
+            }
+            return `${num} = ${parts.join(' + ')}`;
+        }
+
+        // Genera una explicación adaptada a niños de la regla aplicada
+        function getEducationalExplanation(num, romanCorrect, userAns, isRomanTarget) {
+            let decomp = getDecompositionText(num);
+            let explanation = `💡 <b>Descomposición:</b> ${decomp}.<br>`;
+
+            if (isRomanTarget) {
+                explanation += `Para escribir <b>${num}</b> en romanos, descomponemos sus millares, centenas, decenas y unidades.`;
+            } else {
+                explanation += `Sumamos y restamos los valores de las letras de izquierda a derecha. Por ejemplo, en <b>${romanCorrect}</b> obtenemos <b>${num}</b>.`;
+            }
+            return explanation;
+        }
+
+        /* ==========================================================================
+           3. ESTADO DEL JUEGO Y VARIABLES DE CONFIGURACIÓN
+           ========================================================================== */
+        let gameState = {
+            mode: 'roman_to_arabic', // 'roman_to_arabic', 'arabic_to_roman', 'mixed'
+            difficulty: 'beginner',   // 'beginner' (1-50), 'centurion' (1-500), 'caesar' (1-3999)
+            score: 0,
+            streak: 0,
+            maxStreak: 0,
+            lives: 3,
+            currentQuestionIdx: 0,
+            totalQuestions: 10,
+            correctCount: 0,
+            userInput: '',
+            currentQuestion: null,
+            highScore: 0,
+            globalMaxStreak: 0
+        };
+
+        // Cargar récords locales guardados
+        function loadStorage() {
+            const savedScore = localStorage.getItem('imperium_high_score');
+            const savedStreak = localStorage.getItem('imperium_max_streak');
+            if (savedScore) gameState.highScore = parseInt(savedScore);
+            if (savedStreak) gameState.globalMaxStreak = parseInt(savedStreak);
+
+            document.getElementById('menu-high-score').innerText = gameState.highScore;
+            document.getElementById('menu-max-streak').innerText = gameState.globalMaxStreak;
+        }
+
+        function saveStorage() {
+            if (gameState.score > gameState.highScore) {
+                gameState.highScore = gameState.score;
+                localStorage.setItem('imperium_high_score', gameState.highScore);
+            }
+            if (gameState.maxStreak > gameState.globalMaxStreak) {
+                gameState.globalMaxStreak = gameState.maxStreak;
+                localStorage.setItem('imperium_max_streak', gameState.globalMaxStreak);
+            }
+            document.getElementById('menu-high-score').innerText = gameState.highScore;
+            document.getElementById('menu-max-streak').innerText = gameState.globalMaxStreak;
+        }
+
+        /* ==========================================================================
+           4. CONTROL DE PANTALLAS Y MENÚS
+           ========================================================================== */
+        function showScreen(screenId) {
+            audioEngine.playClick();
+            document.getElementById('screen-menu').classList.add('hidden');
+            document.getElementById('screen-game').classList.add('hidden');
+            document.getElementById('screen-results').classList.add('hidden');
+
+            document.getElementById(`screen-${screenId}`).classList.remove('hidden');
+        }
+
+        function toggleRulesModal() {
+            audioEngine.playClick();
+            const drawer = document.getElementById('rules-drawer');
+            drawer.classList.toggle('hidden');
+        }
+
+        function setMode(mode) {
+            audioEngine.playClick();
+            gameState.mode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('border-roman-gold', 'bg-amber-900/40');
+            });
+            document.getElementById(`mode-btn-${mode}`).classList.add('border-roman-gold', 'bg-amber-900/40');
+        }
+
+        function setDifficulty(diff) {
+            audioEngine.playClick();
+            gameState.difficulty = diff;
+            document.querySelectorAll('.diff-btn').forEach(btn => {
+                btn.classList.remove('ring-2', 'ring-roman-gold');
+            });
+            document.getElementById(`diff-btn-${diff}`).classList.add('ring-2', 'ring-roman-gold');
+        }
+
+        /* ==========================================================================
+           5. LÓGICA DE PARTIDA Y PREGUNTAS
+           ========================================================================== */
+        function startGame() {
+            audioEngine.playClick();
+            gameState.score = 0;
+            gameState.streak = 0;
+            gameState.maxStreak = 0;
+            gameState.lives = 3;
+            gameState.currentQuestionIdx = 0;
+            gameState.correctCount = 0;
+
+            updateGameHeader();
+            showScreen('game');
+            nextQuestion();
+        }
+
+        function getRange() {
+            switch (gameState.difficulty) {
+                case 'beginner': return { min: 1, max: 50 };
+                case 'centurion': return { min: 1, max: 500 };
+                case 'caesar': return { min: 1, max: 3999 };
+                default: return { min: 1, max: 50 };
+            }
+        }
+
+        function generateQuestion() {
+            const range = getRange();
+            const num = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+            const roman = toRoman(num);
+
+            let questionType = gameState.mode;
+            if (questionType === 'mixed') {
+                questionType = Math.random() < 0.5 ? 'roman_to_arabic' : 'arabic_to_roman';
+            }
+
+            if (questionType === 'roman_to_arabic') {
+                return {
+                    numValue: num,
+                    questionStr: roman,
+                    correctAnsStr: num.toString(),
+                    targetType: 'arabic', // Respuesta esperada: Arábigo
+                    promptText: '¿Cuál es el valor en números arábigos de:'
+                };
+            } else {
+                return {
+                    numValue: num,
+                    questionStr: num.toString(),
+                    correctAnsStr: roman,
+                    targetType: 'roman', // Respuesta esperada: Romano
+                    promptText: 'Escribe en números romanos el número:'
+                };
+            }
+        }
+
+        function nextQuestion() {
+            if (gameState.currentQuestionIdx >= gameState.totalQuestions || gameState.lives <= 0) {
+                endGame();
+                return;
+            }
+
+            gameState.currentQuestionIdx++;
+            gameState.currentQuestion = generateQuestion();
+            gameState.userInput = '';
+
+            // Actualizar interfaz
+            document.getElementById('current-question-num').innerText = gameState.currentQuestionIdx;
+            document.getElementById('total-questions-num').innerText = gameState.totalQuestions;
+            document.getElementById('question-prompt').innerText = gameState.currentQuestion.promptText;
+            document.getElementById('question-display').innerText = gameState.currentQuestion.questionStr;
+            document.getElementById('hint-display').classList.add('hidden');
+
+            // Adaptar teclado virtual según el tipo de respuesta esperada
+            if (gameState.currentQuestion.targetType === 'roman') {
+                document.getElementById('keyboard-roman').classList.remove('hidden');
+                document.getElementById('keyboard-numeric').classList.add('hidden');
+            } else {
+                document.getElementById('keyboard-roman').classList.add('hidden');
+                document.getElementById('keyboard-numeric').classList.remove('hidden');
+            }
+
+            updateAnswerBox();
+        }
+
+        function showHint() {
+            audioEngine.playClick();
+            const q = gameState.currentQuestion;
+            const hintBox = document.getElementById('hint-display');
+            hintBox.innerText = `💡 Pista: ${getDecompositionText(q.numValue)}`;
+            hintBox.classList.remove('hidden');
+        }
+
+        /* ==========================================================================
+           6. CONTROL DE ENTRADA Y TECLADO
+           ========================================================================== */
+        function typeInput(char) {
+            audioEngine.playClick();
+            if (gameState.userInput.length < 12) {
+                gameState.userInput += char;
+                updateAnswerBox();
+            }
+        }
+
+        function backspaceInput() {
+            audioEngine.playClick();
+            gameState.userInput = gameState.userInput.slice(0, -1);
+            updateAnswerBox();
+        }
+
+        function clearInput() {
+            audioEngine.playClick();
+            gameState.userInput = '';
+            updateAnswerBox();
+        }
+
+        function updateAnswerBox() {
+            document.getElementById('answer-display').innerText = gameState.userInput;
+        }
+
+        // Listener de teclado físico para PC / Tablets con teclado externo
+        window.addEventListener('keydown', (e) => {
+            const gameScreen = document.getElementById('screen-game');
+            if (gameScreen.classList.contains('hidden')) return;
+
+            const q = gameState.currentQuestion;
+            if (!q) return;
+
+            if (e.key === 'Enter') {
+                submitAnswer();
+            } else if (e.key === 'Backspace') {
+                backspaceInput();
+            } else if (q.targetType === 'roman') {
+                const key = e.key.toUpperCase();
+                if (['I', 'V', 'X', 'L', 'C', 'D', 'M'].includes(key)) {
+                    typeInput(key);
+                }
+            } else if (q.targetType === 'arabic') {
+                if (e.key >= '0' && e.key <= '9') {
+                    typeInput(e.key);
+                }
+            }
+        });
+
+        /* ==========================================================================
+           7. VALIDACIÓN DE RESPUESTAS Y FEEDBACK
+           ========================================================================== */
+        function submitAnswer() {
+            if (!gameState.userInput.trim()) return;
+
+            const q = gameState.currentQuestion;
+            const userAnsFormatted = gameState.userInput.trim().toUpperCase();
+            const correctAnsFormatted = q.correctAnsStr.toString().trim().toUpperCase();
+
+            if (userAnsFormatted === correctAnsFormatted) {
+                // ACERTADO
+                audioEngine.playCorrect();
+                gameState.correctCount++;
+                gameState.streak++;
+                if (gameState.streak > gameState.maxStreak) gameState.maxStreak = gameState.streak;
+
+                // Cálculo de Puntuación (Base + Bonificación por Racha)
+                const basePoints = 100;
+                const streakBonus = (gameState.streak - 1) * 20;
+                gameState.score += basePoints + streakBonus;
+
+                // Efecto visual de tarjeta resplandeciente
+                const card = document.getElementById('question-card');
+                card.classList.add('animate-glow');
+                setTimeout(() => card.classList.remove('animate-glow'), 800);
+
+                updateGameHeader();
+                nextQuestion();
+            } else {
+                // FALLADO
+                audioEngine.playWrong();
+                gameState.streak = 0;
+                gameState.lives--;
+
+                updateGameHeader();
+
+                // Mostrar Modal de Explicación Didáctica
+                showFeedbackModal(userAnsFormatted, correctAnsFormatted, q);
+            }
+        }
+
+        function updateGameHeader() {
+            document.getElementById('game-score').innerText = gameState.score;
+            document.getElementById('game-streak').innerText = gameState.streak;
+
+            // Renderizado de Corazones de Vidas
+            let hearts = '';
+            for (let i = 0; i < 3; i++) {
+                hearts += i < gameState.lives ? '❤️' : '🖤';
+            }
+            document.getElementById('game-lives').innerText = hearts;
+        }
+
+        function showFeedbackModal(userAns, correctAns, questionObj) {
+            document.getElementById('user-wrong-ans').innerText = userAns;
+            document.getElementById('correct-ans').innerText = correctAns;
+
+            const isRomanTarget = questionObj.targetType === 'roman';
+            const explanation = getEducationalExplanation(
+                questionObj.numValue,
+                toRoman(questionObj.numValue),
+                userAns,
+                isRomanTarget
+            );
+
+            document.getElementById('modal-explanation').innerHTML = explanation;
+            document.getElementById('feedback-modal').classList.remove('hidden');
+        }
+
+        function closeFeedbackModal() {
+            audioEngine.playClick();
+            document.getElementById('feedback-modal').classList.add('hidden');
+            nextQuestion();
+        }
+
+        /* ==========================================================================
+           8. RESULTADOS FINALES Y TROFEOS
+           ========================================================================== */
+        function endGame() {
+            saveStorage();
+            audioEngine.playFanfare();
+            showScreen('results');
+
+            const total = gameState.totalQuestions;
+            const correct = gameState.correctCount;
+            const accuracy = Math.round((correct / total) * 100);
+
+            document.getElementById('res-score').innerText = gameState.score;
+            document.getElementById('res-streak').innerText = gameState.maxStreak;
+            document.getElementById('res-correct').innerText = `${correct} / ${total}`;
+            document.getElementById('res-accuracy').innerText = `${accuracy}%`;
+
+            // Cálculo de Estrellas e Insignias
+            let stars = '⭐';
+            let rankTitle = 'Legionario en Aprendizaje';
+            let trophyTitle = 'Insignia de Bronce';
+            let trophyIcon = '🥉';
+            let trophyDesc = '¡Buen esfuerzo! Continúa practicando las reglas numéricas.';
+
+            if (accuracy >= 90) {
+                stars = '⭐⭐⭐';
+                rankTitle = '¡Gran César Imperecedero!';
+                trophyTitle = 'Corona de Laurel Dorado';
+                trophyIcon = '👑';
+                trophyDesc = '¡Excelente! Dominas a la perfección la numeración romana.';
+                triggerConfetti();
+            } else if (accuracy >= 60) {
+                stars = '⭐⭐';
+                rankTitle = '¡Centurión Victorioso!';
+                trophyTitle = 'Escudo de Plata Imperial';
+                trophyIcon = '🛡️';
+                trophyDesc = '¡Muy bien! Estás muy cerca de la maestría total.';
+            }
+
+            document.getElementById('result-stars').innerText = stars;
+            document.getElementById('result-rank').innerText = rankTitle;
+            document.getElementById('res-trophy-icon').innerText = trophyIcon;
+            document.getElementById('res-trophy-title').innerText = trophyTitle;
+            document.getElementById('res-trophy-desc').innerText = trophyDesc;
+        }
+
+        /* ==========================================================================
+           9. EFECTO DE CONFETI EN CANVAS
+           ========================================================================== */
+        function triggerConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particles = [];
+            const colors = ['#F5C242', '#A91B1B', '#ffffff', '#8C6239', '#FFD700'];
+
+            for (let i = 0; i < 80; i++) {
+                particles.push({
+                    x: canvas.width / 2,
+                    y: canvas.height / 2,
+                    vx: (Math.random() - 0.5) * 12,
+                    vy: (Math.random() - 0.7) * 12,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    radius: Math.random() * 6 + 3,
+                    alpha: 1
+                });
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let active = false;
+
+                particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.2; // Gravedad
+                    p.alpha -= 0.015;
+
+                    if (p.alpha > 0) {
+                        active = true;
+                        ctx.globalAlpha = p.alpha;
+                        ctx.fillStyle = p.color;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                });
+
+                if (active) {
+                    requestAnimationFrame(animate);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+
+            animate();
+        }
+
+        /* ==========================================================================
+           10. INICIALIZACIÓN
+           ========================================================================== */
+        window.onload = () => {
+            loadStorage();
+            setMode('roman_to_arabic');
+            setDifficulty('beginner');
+            setupFirstInteractionAudio();
+            const bgMusic = document.getElementById('bg-music');
+            if (bgMusic) bgMusic.volume = 0.5;
+        };
+    </script>
+</body>
+</html>
